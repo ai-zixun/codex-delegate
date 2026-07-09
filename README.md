@@ -45,8 +45,7 @@ codex login                    # or export OPENAI_API_KEY=sk-...
 Then add this plugin to Claude Code:
 
 ```bash
-# From a clone of this repo (or a published fork):
-/plugin marketplace add <owner>/codex-delegate
+/plugin marketplace add ai-zixun/codex-delegate
 /plugin install codex-delegate@codex-delegate
 ```
 

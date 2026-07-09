@@ -1,0 +1,10 @@
+{
+  "name": "codex-delegate",
+  "version": "0.1.0",
+  "description": "Auto-route eligible bulk/mechanical/well-specified coding work from Claude Code to OpenAI Codex (GPT-5) to save cost, while Claude stays orchestrator and quality gate.",
+  "author": {
+    "name": "codex-delegate contributors"
+  },
+  "license": "MIT",
+  "keywords": ["codex", "openai", "gpt-5", "delegation", "routing", "cost", "orchestration"]
+}

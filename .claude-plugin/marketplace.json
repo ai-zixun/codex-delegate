@@ -1,0 +1,19 @@
+{
+  "name": "codex-delegate",
+  "owner": {
+    "name": "codex-delegate contributors"
+  },
+  "metadata": {
+    "description": "Cost-aware routing of coding work from Claude Code to OpenAI Codex.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "codex-delegate",
+      "description": "Auto-route eligible bulk/mechanical/well-specified coding work to OpenAI Codex (GPT-5) to save cost, with Claude as orchestrator and quality gate.",
+      "version": "0.1.0",
+      "license": "MIT",
+      "source": "."
+    }
+  ]
+}

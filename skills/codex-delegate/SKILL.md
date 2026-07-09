@@ -1,6 +1,15 @@
 ---
 name: codex-delegate
-description: Route eligible coding work to OpenAI Codex (GPT-5) to save cost and time while Claude stays orchestrator and quality gate. Use PROACTIVELY when a task is well-specified and bulk, mechanical, repetitive, parallelizable, or long-running — codemods, boilerplate, migrations, wide find-and-replace refactors, test scaffolding, dependency bumps, sweeping a change across many files — or when an independent second-model review, diagnosis, or research pass adds value. Also triggers on explicit asks: "delegate to codex", "offload this", "use codex for", "have codex do it". Do NOT use for interactive debugging, architecture/design judgment, nuanced or high-stakes code, or work that depends on rich in-conversation context.
+description: >-
+  Route eligible coding work to OpenAI Codex (GPT-5) to save cost and time while
+  Claude stays orchestrator and quality gate. Use PROACTIVELY when a task is
+  well-specified and bulk, mechanical, repetitive, parallelizable, or long-running
+  — codemods, boilerplate, migrations, wide find-and-replace refactors, test
+  scaffolding, dependency bumps, sweeping a change across many files — or when an
+  independent second-model review, diagnosis, or research pass adds value. Also
+  triggers on explicit asks to delegate to Codex, offload work, or use Codex for a
+  task. Do NOT use for interactive debugging, architecture and design judgment,
+  nuanced or high-stakes code, or work that depends on rich in-conversation context.
 allowed-tools:
   - Bash
   - Read

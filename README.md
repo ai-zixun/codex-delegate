@@ -1,5 +1,7 @@
 # codex-delegate
 
+[![skills.sh](https://skills.sh/b/ai-zixun/codex-delegate)](https://skills.sh/ai-zixun/codex-delegate)
+
 A [Claude Code](https://claude.com/claude-code) skill/plugin that lets Claude **auto-route
 eligible coding work to [OpenAI Codex](https://github.com/openai/codex) (GPT-5)** — to
 save cost and time — while Claude stays the orchestrator and quality gate.
@@ -42,7 +44,18 @@ npm install -g @openai/codex   # or: brew install codex
 codex login                    # or export OPENAI_API_KEY=sk-...
 ```
 
-Then add this plugin to Claude Code:
+Then install the skill. Pick one:
+
+**Via [skills.sh](https://www.skills.sh) (any agent — Claude Code, Codex, OpenClaw):**
+
+```bash
+npx skills add ai-zixun/codex-delegate
+```
+
+`npx skills add` auto-detects your installed agents and drops the skill into each one's
+skills directory (e.g. `~/.claude/skills/codex-delegate/`, `~/.codex/skills/…`).
+
+**As a Claude Code plugin (adds the `/codex-delegate` command too):**
 
 ```bash
 /plugin marketplace add ai-zixun/codex-delegate
@@ -93,8 +106,9 @@ Full guide, worked examples, and the cost model:
 ## Layout
 
 ```
-.claude-plugin/plugin.json         # plugin manifest
+.claude-plugin/plugin.json         # plugin manifest (declares the skill)
 .claude-plugin/marketplace.json    # single-plugin marketplace (for `/plugin marketplace add`)
+.github/workflows/release.yml      # tags a GitHub Release when VERSION changes
 commands/codex-delegate.md         # manual /codex-delegate slash command
 skills/codex-delegate/
   SKILL.md                         # the router: DELEGATE/KEEP decision + mechanics
@@ -103,6 +117,7 @@ skills/codex-delegate/
     routing-rubric.md              # full decision guide + cost model + examples
     prompt-recipes.md              # contract-style Codex prompt templates
     setup.md                       # install / auth / troubleshooting
+CHANGELOG.md · VERSION             # release metadata (drives the release workflow)
 ```
 
 ## Safety

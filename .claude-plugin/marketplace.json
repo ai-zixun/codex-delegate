@@ -13,7 +13,8 @@
       "description": "Auto-route eligible bulk/mechanical/well-specified coding work to OpenAI Codex (GPT-5) to save cost, with Claude as orchestrator and quality gate.",
       "version": "0.1.0",
       "license": "MIT",
-      "source": "."
+      "source": "./",
+      "skills": ["./skills/codex-delegate/SKILL.md"]
     }
   ]
 }

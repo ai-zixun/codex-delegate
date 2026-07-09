@@ -6,5 +6,6 @@
     "name": "codex-delegate contributors"
   },
   "license": "MIT",
+  "skills": ["./skills/codex-delegate/SKILL.md"],
   "keywords": ["codex", "openai", "gpt-5", "delegation", "routing", "cost", "orchestration"]
 }

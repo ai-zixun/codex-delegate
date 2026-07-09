@@ -114,15 +114,29 @@ merged **defaults → user → project** (project wins):
 Copy [`codex-delegate.config.example.json`](codex-delegate.config.example.json) to one of
 those paths and edit. Highlights:
 
+- **`decisionMode`** — `auto` (Claude judges each task within your guardrails), `config`
+  (categories only), or `manual` (only when you ask).
+- **`riskPolicy`** — how autonomous to be: `autoDelegate: lowRisk` (default) auto-delegates
+  confident low-risk work and asks first for risky ones; `maxAutoFiles` and
+  `protectedPaths` define "risky".
 - **`routing.<category>`** — set each category to `delegate`, `keep`, or `ask`
   (`bulkMechanical`, `migrations`, `tests`, `review`, `diagnosis`, `computerUse`,
-  `architecture`, …). Turn Codex on/off per kind of work.
+  `architecture`, …). A `keep` here is a hard guardrail Claude never overrides.
 - **`customRules`** — plain-English rules, e.g. *"When I finish a web page, open it in
   Chrome"* or *"Never delegate anything under src/payments/."*
-- **`codexDefaults`** — default `effort`, `model`, `writeByDefault`, `timeoutSeconds`.
-- **`computerUse`** — the present-results settings (below).
+- **`learning`** — when you correct a routing call, Claude remembers it (persisted as a
+  rule) so it routes that way next time.
+- **`codexDefaults`** / **`computerUse`** — Codex run defaults and present-results settings.
 
 Full schema: [`references/configuration.md`](skills/codex-delegate/references/configuration.md).
+
+### How Claude decides (autonomous routing)
+
+In the default `auto` mode, for each task Claude: resolves config → classifies it and
+applies the category guardrail → runs the two-gate test + cost model → assesses risk →
+**auto-delegates confident low-risk work (telling you), and asks first for risky work**.
+Correct it once ("keep migrations local") and it learns. See the *Routing decision
+protocol* in [`SKILL.md`](skills/codex-delegate/SKILL.md).
 
 ## Computer use — show me results in Mac apps
 
@@ -159,6 +173,7 @@ skills/codex-delegate/
   scripts/codex-run.sh             # robust `codex exec` wrapper (read-only by default)
   scripts/codex-config.sh          # resolve merged config (defaults < user < project)
   scripts/codex-present.sh         # open results in Chrome/Pages/etc. (computer use)
+  scripts/codex-learn.sh           # persist routing corrections + optional decision log
   references/
     routing-rubric.md              # full decision guide + cost model + examples
     configuration.md               # config schema (routing policy + computer use)

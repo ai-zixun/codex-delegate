@@ -59,33 +59,71 @@ specify the task, pay Codex to run, then pay Claude to verify and often redo.
 > repo-level refactor judgment. See `references/routing-rubric.md` for the full
 > decision guide, worked examples, and the cost model.
 
-## Apply the user's config first
+## Routing decision protocol
 
-Routing is configurable. **Before deciding, resolve the effective config** (built-in
-defaults ← user ← project, project wins):
+For any non-trivial task, **decide where it runs before you start**. Resolve config once:
 
 ```bash
-"${CLAUDE_PLUGIN_ROOT:-.}/skills/codex-delegate/scripts/codex-config.sh"          # merged JSON
-"${CLAUDE_PLUGIN_ROOT:-.}/skills/codex-delegate/scripts/codex-config.sh" get routing.computerUse
+"${CLAUDE_PLUGIN_ROOT:-.}/skills/codex-delegate/scripts/codex-config.sh"    # merged JSON
 ```
 
-Then honor it:
+Then walk these steps in order. Config is a **hard guardrail** — your judgment operates
+*within* it, never against an explicit setting.
 
-- **`enabled: false`** → do not delegate anything; do the work yourself.
-- **`autoRoute: false`** → only delegate when the user explicitly asks.
-- **`routing.<category>`** → `delegate` (route when the two-gate test passes), `keep`
-  (always do it yourself), or `ask` (confirm with the user before delegating). Map the
-  task to the closest category: `bulkMechanical`, `migrations`, `boilerplate`, `tests`,
-  `review`, `diagnosis`, `research`, `computerUse`, `architecture`, `interactiveDebug`,
-  `highStakes`.
-- **`customRules`** → plain-English rules to obey alongside the categories (they can
-  express both what to route and how to present results). Follow them.
-- **`codexDefaults`** → default `effort`, `model`, `writeByDefault`, `timeoutSeconds`
-  for the `codex-run.sh` call.
+**1. Global gates.**
+- `enabled: false` → do everything yourself; stop here.
+- Effective mode is **manual** if `decisionMode: manual` *or* `autoRoute: false` → only
+  delegate when the user explicitly asks; otherwise do it yourself.
+- `decisionMode: config` → follow step 2 categories only; treat a silent/`auto` category
+  as `keep` (no autonomous judgment).
+- `decisionMode: auto` (default) → full protocol below.
 
-The config still sits under the two-gate test and the cost model — a category set to
-`delegate` is permission to route eligible work there, not a command to force-delegate
-work that fails the gates. Full schema: `references/configuration.md`.
+**2. Classify + apply the category guardrail.** Map the task to the closest category:
+`bulkMechanical`, `migrations`, `boilerplate`, `tests`, `review`, `diagnosis`,
+`research`, `computerUse`, `architecture`, `interactiveDebug`, `highStakes`. Then
+`routing.<category>`:
+- `keep` → you do it. Stop. (Hard guardrail — never override.)
+- `ask` → ask the user before delegating.
+- `delegate` → eligible; continue.
+- silent or `auto` → use judgment; continue.
+
+**3. Eligibility — the two-gate test + cost model** (see the table above and
+`references/routing-rubric.md`). If it fails either gate, **keep it**. Also obey
+`customRules` (plain-English rules, including anything you've learned — step 6).
+
+**4. Risk assessment.** Classify the candidate:
+- **Low-risk:** read-only work (review / diagnose / research), or a scoped write that
+  touches ≤ `riskPolicy.maxAutoFiles` files and no `riskPolicy.protectedPaths`.
+- **High-risk:** writes touching more than `maxAutoFiles`, anything under
+  `protectedPaths`, irreversible/outward-facing actions, or fuzzy scope.
+
+**5. Act per `riskPolicy.autoDelegate`.**
+- `always` → delegate now.
+- `lowRisk` (default) → **low-risk: delegate and tell the user**; **high-risk: ask first**.
+- `confirm` → ask before every delegation.
+
+When you delegate, **announce it in one line** ("Delegating to Codex: <task> — <reason>.")
+so the decision is visible. If `learning.logDecisions` is true, log it:
+
+```bash
+"${CLAUDE_PLUGIN_ROOT:-.}/skills/codex-delegate/scripts/codex-learn.sh" log '{"task":"<short>","category":"<cat>","decision":"delegate","risk":"low","reason":"<why>"}'
+```
+
+**6. Learn from corrections** (when `learning.enabled`). If the user overrides a
+decision — "don't send that to Codex", "always delegate migrations", "keep payments
+local" — persist it so you route that way next time:
+
+```bash
+"${CLAUDE_PLUGIN_ROOT:-.}/skills/codex-delegate/scripts/codex-learn.sh" rule "Never delegate anything under src/payments/."
+```
+
+Learned rules merge into `customRules` automatically on the next config resolve. Confirm
+what you saved in one line. Use `codex-learn.sh rules` / `forget <n>` to review or undo.
+
+> Defaults give you a hands-off but safe router: it auto-delegates confident, low-risk,
+> reversible work (read-only reviews, scoped mechanical edits) and pauses to confirm the
+> risky stuff (broad writes, protected paths). Tune with `decisionMode` and `riskPolicy`.
+> Full schema: `references/configuration.md`.
 
 ## How to delegate
 

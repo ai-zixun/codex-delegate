@@ -35,7 +35,23 @@ import json, os, sys
 
 DEFAULTS = {
     "enabled": True,
-    "autoRoute": True,
+    "autoRoute": True,                # legacy: False forces manual (see decisionMode)
+    # How Claude routes: "auto" = judge each task within the config guardrails;
+    # "config" = follow routing categories only (silent category => keep);
+    # "manual" = delegate only when the user explicitly asks.
+    "decisionMode": "auto",
+    # Risk-aware autonomy for the "auto" decision mode.
+    "riskPolicy": {
+        # "always" = delegate whenever eligible; "lowRisk" = auto-delegate low-risk,
+        # ask first for high-risk; "confirm" = ask before every delegation.
+        "autoDelegate": "lowRisk",
+        "maxAutoFiles": 10,           # writes touching more files than this => ask first
+        "protectedPaths": [],         # globs that always require confirmation
+    },
+    "learning": {
+        "enabled": True,              # persist corrections as rules (codex-learn.sh)
+        "logDecisions": False,        # append routing decisions to decisions.jsonl
+    },
     "codexDefaults": {
         "effort": "medium",
         "model": None,
@@ -108,6 +124,29 @@ for err in (uerr, perr):
         sys.stderr.write(f"codex-config: ignoring invalid config {err}\n")
 
 merged = deep_merge(deep_merge(DEFAULTS, user_cfg), proj_cfg)
+
+# customRules concatenate across layers (deep_merge would replace the array wholesale),
+# then append machine-learned rules, de-duped in order.
+learned_path = os.path.expanduser(
+    os.environ.get("CODEX_DELEGATE_LEARNED", "~/.claude/codex-delegate/learned-rules.json")
+)
+learned = []
+try:
+    with open(learned_path) as f:
+        data = json.load(f)
+        learned = data if isinstance(data, list) else data.get("rules", [])
+except Exception:
+    learned = []
+
+rules, seen = [], set()
+for layer in (DEFAULTS, user_cfg, proj_cfg):
+    for r in (layer.get("customRules") or []):
+        if r not in seen:
+            seen.add(r); rules.append(r)
+for r in learned:
+    if isinstance(r, str) and r not in seen:
+        seen.add(r); rules.append(r)
+merged["customRules"] = rules
 
 cmd, key = os.environ["CMD"], os.environ["KEY"]
 if cmd == "print":

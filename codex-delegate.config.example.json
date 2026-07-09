@@ -4,6 +4,19 @@
   "enabled": true,
   "autoRoute": true,
 
+  "decisionMode": "auto",
+
+  "riskPolicy": {
+    "autoDelegate": "lowRisk",
+    "maxAutoFiles": 10,
+    "protectedPaths": ["src/payments/**", "**/*secret*", "infra/**"]
+  },
+
+  "learning": {
+    "enabled": true,
+    "logDecisions": false
+  },
+
   "codexDefaults": {
     "effort": "medium",
     "model": null,

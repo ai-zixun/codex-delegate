@@ -30,8 +30,39 @@ scripts/codex-config.sh get computerUse.autoPresent   # read one dotted key
 
 - **`enabled`** (bool, default `true`) — master switch. `false` disables all routing;
   Claude does everything itself.
-- **`autoRoute`** (bool, default `true`) — when `true`, Claude routes proactively per
-  the rules below. When `false`, Claude only delegates when you explicitly ask.
+- **`autoRoute`** (bool, default `true`) — legacy switch; `false` forces manual mode
+  (only delegate on explicit request). Prefer `decisionMode`.
+- **`decisionMode`** (`auto` | `config` | `manual`, default `auto`) — how Claude routes:
+  - `auto` — Claude judges each task within the config guardrails (the full decision
+    protocol, risk-aware).
+  - `config` — follow the `routing` categories only; a silent/`auto` category is treated
+    as `keep` (no autonomous judgment).
+  - `manual` — delegate only when you explicitly ask.
+
+### `riskPolicy`
+
+Governs autonomy in `decisionMode: auto`:
+
+- **`autoDelegate`** (`always` | `lowRisk` | `confirm`, default `lowRisk`):
+  - `always` — delegate whenever a task is eligible.
+  - `lowRisk` — auto-delegate low-risk work (read-only reviews/diagnosis/research, or a
+    scoped write ≤ `maxAutoFiles` files outside `protectedPaths`) and **ask first** for
+    high-risk work (broad writes, protected paths, irreversible actions).
+  - `confirm` — ask before every delegation.
+- **`maxAutoFiles`** (int, default `10`) — a write touching more files than this is
+  treated as high-risk (confirm first under `lowRisk`).
+- **`protectedPaths`** (globs, default `[]`) — matching paths always require
+  confirmation before delegating, e.g. `["src/payments/**", "**/*secret*"]`.
+
+### `learning`
+
+- **`enabled`** (bool, default `true`) — when you correct a routing decision, Claude
+  persists it as a rule (via `scripts/codex-learn.sh`) that merges into `customRules` on
+  the next resolve, so it routes that way next time. Stored in
+  `~/.claude/codex-delegate/learned-rules.json` (a dedicated file — your hand-authored
+  config is never rewritten). Manage with `codex-learn.sh rules` / `forget <n>`.
+- **`logDecisions`** (bool, default `false`) — append each routing decision to
+  `~/.claude/codex-delegate/decisions.jsonl` for review.
 
 ### `codexDefaults`
 

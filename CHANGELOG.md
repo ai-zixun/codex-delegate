@@ -4,6 +4,24 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] - 2026-07-09
+
+### Added
+
+- **Autonomous routing decision protocol** — in the default `decisionMode: auto`, Claude
+  decides each task itself: resolve config → classify + category guardrail → two-gate
+  test + cost model → risk assessment → act. Config categories are a hard guardrail
+  (`keep` is never overridden); judgment fills the gaps.
+- **Risk-aware autonomy** (`riskPolicy`): `autoDelegate` = `always` | `lowRisk` (default)
+  | `confirm`. `lowRisk` auto-delegates confident low-risk work (read-only reviews,
+  scoped writes) and asks first for high-risk work — writes over `maxAutoFiles`, anything
+  under `protectedPaths`, or irreversible actions.
+- **Learning from corrections** (`learning`): `scripts/codex-learn.sh` persists routing
+  overrides as natural-language rules (`~/.claude/codex-delegate/learned-rules.json`,
+  merged into `customRules` on the next resolve — hand-authored config is never
+  rewritten), with `rules`/`forget` management and an optional `logDecisions` decision log.
+- `decisionMode` (`auto` | `config` | `manual`) config field.
+
 ## [0.2.0] - 2026-07-09
 
 ### Added

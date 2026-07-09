@@ -103,6 +103,49 @@ Delegate only when **both** gates pass:
 Full guide, worked examples, and the cost model:
 [`skills/codex-delegate/references/routing-rubric.md`](skills/codex-delegate/references/routing-rubric.md).
 
+## Configuration
+
+You control what gets routed and how results are presented via an optional JSON config,
+merged **defaults → user → project** (project wins):
+
+- User (global): `~/.claude/codex-delegate.config.json`
+- Project: `<repo>/codex-delegate.config.json`
+
+Copy [`codex-delegate.config.example.json`](codex-delegate.config.example.json) to one of
+those paths and edit. Highlights:
+
+- **`routing.<category>`** — set each category to `delegate`, `keep`, or `ask`
+  (`bulkMechanical`, `migrations`, `tests`, `review`, `diagnosis`, `computerUse`,
+  `architecture`, …). Turn Codex on/off per kind of work.
+- **`customRules`** — plain-English rules, e.g. *"When I finish a web page, open it in
+  Chrome"* or *"Never delegate anything under src/payments/."*
+- **`codexDefaults`** — default `effort`, `model`, `writeByDefault`, `timeoutSeconds`.
+- **`computerUse`** — the present-results settings (below).
+
+Full schema: [`references/configuration.md`](skills/codex-delegate/references/configuration.md).
+
+## Computer use — show me results in Mac apps
+
+codex-delegate can open finished work in a Mac app so you can *see* it — a built page in
+Chrome, a report in Pages, a PDF in Preview. Configured under `computerUse`:
+
+- **`execution`** — `hybrid` (default: Codex opens it when the task was already delegated
+  to Codex; otherwise the skill opens it inline), `codex`, or `inline`.
+- **`autoPresent`** — `viewable` (default: auto-open only when a viewable artifact was
+  produced), `always`, or `manual`.
+- **`openers`** — map file types / URLs to apps (`".html": "Google Chrome"`,
+  `".pdf": "Preview"`, `".docx": "Pages"`, …).
+
+```bash
+# open something directly (used by the skill; handy on its own):
+skills/codex-delegate/scripts/codex-present.sh build/index.html      # -> Chrome
+skills/codex-delegate/scripts/codex-present.sh https://localhost:3000
+```
+
+macOS only. Bare `open -a` needs no special permission; richer scripted control
+(osascript) is gated behind `computerUse.allowAppleScript` and a one-time macOS
+Automation grant.
+
 ## Layout
 
 ```
@@ -110,11 +153,15 @@ Full guide, worked examples, and the cost model:
 .claude-plugin/marketplace.json    # single-plugin marketplace (for `/plugin marketplace add`)
 .github/workflows/release.yml      # tags a GitHub Release when VERSION changes
 commands/codex-delegate.md         # manual /codex-delegate slash command
+codex-delegate.config.example.json # copy to configure routing + presentation
 skills/codex-delegate/
   SKILL.md                         # the router: DELEGATE/KEEP decision + mechanics
   scripts/codex-run.sh             # robust `codex exec` wrapper (read-only by default)
+  scripts/codex-config.sh          # resolve merged config (defaults < user < project)
+  scripts/codex-present.sh         # open results in Chrome/Pages/etc. (computer use)
   references/
     routing-rubric.md              # full decision guide + cost model + examples
+    configuration.md               # config schema (routing policy + computer use)
     prompt-recipes.md              # contract-style Codex prompt templates
     setup.md                       # install / auth / troubleshooting
 CHANGELOG.md · VERSION             # release metadata (drives the release workflow)

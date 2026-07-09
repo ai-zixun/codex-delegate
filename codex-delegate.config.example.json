@@ -1,0 +1,52 @@
+{
+  "$comment": "Copy to ~/.claude/codex-delegate.config.json (global) and/or <repo>/codex-delegate.config.json (per-project; project wins). Every field is optional — omit anything you want to leave at its built-in default. Full reference: skills/codex-delegate/references/configuration.md",
+
+  "enabled": true,
+  "autoRoute": true,
+
+  "codexDefaults": {
+    "effort": "medium",
+    "model": null,
+    "writeByDefault": false,
+    "timeoutSeconds": 900
+  },
+
+  "routing": {
+    "bulkMechanical": "delegate",
+    "migrations": "delegate",
+    "boilerplate": "delegate",
+    "tests": "delegate",
+    "review": "delegate",
+    "diagnosis": "delegate",
+    "research": "delegate",
+    "computerUse": "delegate",
+    "architecture": "keep",
+    "interactiveDebug": "keep",
+    "highStakes": "keep"
+  },
+
+  "customRules": [
+    "When I finish building a web page or HTML artifact, open it in Chrome so I can see it.",
+    "After generating a report or document, open it in Pages (or Preview for a PDF).",
+    "Route large mechanical refactors that touch many files to Codex."
+  ],
+
+  "computerUse": {
+    "execution": "hybrid",
+    "autoPresent": "viewable",
+    "viewableExtensions": [".html", ".htm", ".pdf", ".md", ".png", ".jpg", ".svg", ".docx", ".pages"],
+    "openers": {
+      "url": "Google Chrome",
+      ".html": "Google Chrome",
+      ".htm": "Google Chrome",
+      ".svg": "Google Chrome",
+      ".pdf": "Preview",
+      ".png": "Preview",
+      ".jpg": "Preview",
+      ".docx": "Pages",
+      ".pages": "Pages",
+      "default": null
+    },
+    "allowAppleScript": false
+  }
+}

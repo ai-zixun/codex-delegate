@@ -59,6 +59,34 @@ specify the task, pay Codex to run, then pay Claude to verify and often redo.
 > repo-level refactor judgment. See `references/routing-rubric.md` for the full
 > decision guide, worked examples, and the cost model.
 
+## Apply the user's config first
+
+Routing is configurable. **Before deciding, resolve the effective config** (built-in
+defaults ← user ← project, project wins):
+
+```bash
+"${CLAUDE_PLUGIN_ROOT:-.}/skills/codex-delegate/scripts/codex-config.sh"          # merged JSON
+"${CLAUDE_PLUGIN_ROOT:-.}/skills/codex-delegate/scripts/codex-config.sh" get routing.computerUse
+```
+
+Then honor it:
+
+- **`enabled: false`** → do not delegate anything; do the work yourself.
+- **`autoRoute: false`** → only delegate when the user explicitly asks.
+- **`routing.<category>`** → `delegate` (route when the two-gate test passes), `keep`
+  (always do it yourself), or `ask` (confirm with the user before delegating). Map the
+  task to the closest category: `bulkMechanical`, `migrations`, `boilerplate`, `tests`,
+  `review`, `diagnosis`, `research`, `computerUse`, `architecture`, `interactiveDebug`,
+  `highStakes`.
+- **`customRules`** → plain-English rules to obey alongside the categories (they can
+  express both what to route and how to present results). Follow them.
+- **`codexDefaults`** → default `effort`, `model`, `writeByDefault`, `timeoutSeconds`
+  for the `codex-run.sh` call.
+
+The config still sits under the two-gate test and the cost model — a category set to
+`delegate` is permission to route eligible work there, not a command to force-delegate
+work that fails the gates. Full schema: `references/configuration.md`.
+
 ## How to delegate
 
 All delegation goes through the wrapper (read-only by default, robust timeout and
@@ -81,6 +109,43 @@ Pick the mode by what you need back:
 
 Run the wrapper with the `Bash` tool. For long jobs, run it in the background so you
 can keep working, and collect the result when it finishes.
+
+## Computer use — presenting results in Mac apps
+
+Codex/this skill can open finished work in a Mac app so the user can *see* it — e.g.
+open a built page in Chrome, a report in Pages, a PDF in Preview. Governed by
+`computerUse` in the config.
+
+**When to present** (`computerUse.autoPresent`): `viewable` (default) auto-opens only
+when the task produced a viewable artifact; `always` presents after every delegation;
+`manual` only on explicit request ("show me in Chrome"). Check eligibility:
+
+```bash
+"${CLAUDE_PLUGIN_ROOT:-.}/skills/codex-delegate/scripts/codex-present.sh" --is-viewable path/to/index.html
+```
+
+**Who opens it** (`computerUse.execution`):
+
+- **`hybrid`** (default) — if the artifact was produced by a task you already delegated
+  to Codex, let Codex open it as the final step of that run (add an `open -a "<App>"
+  "<file>"` instruction to the Codex prompt and run with `--full-access`). For a
+  standalone "just show me this" with no active Codex run, open it inline:
+
+  ```bash
+  "${CLAUDE_PLUGIN_ROOT:-.}/skills/codex-delegate/scripts/codex-present.sh" build/index.html
+  "${CLAUDE_PLUGIN_ROOT:-.}/skills/codex-delegate/scripts/codex-present.sh" https://localhost:3000
+  ```
+- **`codex`** — always route the open through Codex (`codex-run.sh --full-access "open -a …"`).
+- **`inline`** — always use `codex-present.sh` directly (fastest, most reliable).
+
+`codex-present.sh` picks the app from `computerUse.openers` (by URL or file extension,
+falling back to the macOS default app). Bare `open -a` needs no special permission;
+richer scripted control (osascript) is gated behind `computerUse.allowAppleScript` and
+needs a one-time macOS Automation grant. macOS only — a no-op elsewhere.
+
+> When a delegated Codex run should present its own output, keep it in the **same** run
+> (one task, ending in the open) rather than a second delegation — Codex already has the
+> file paths in context.
 
 ## Writing the Codex prompt
 
